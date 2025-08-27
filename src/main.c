@@ -172,6 +172,12 @@ int main(int argc, char* argv[]) {
 
         run(dx, dy);
 
+        const Uint8 *state2 = SDL_GetKeyboardState(NULL);
+        if (state2[SDL_SCANCODE_ESCAPE] || state2[SDL_SCANCODE_O]) { // Exit Keybinds for Cross-Platform Dev
+            quit = 1;
+            break;
+        }
+
         SDL_RenderPresent(renderer);
 
         double frameTime = (double)(SDL_GetPerformanceCounter() - now) / SDL_GetPerformanceFrequency();
