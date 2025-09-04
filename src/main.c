@@ -81,20 +81,20 @@ void run(float mouse_x, float mouse_y) {
   const Uint8 *state = SDL_GetKeyboardState(NULL);
   if (state[SDL_SCANCODE_S])
   {
-    float move_back[3] = {0,0,-CameraMovementSpeed};
-    TranslateCameraIncrement(move_back);
+    char * dir = "BACKWARD";
+    TranslateCameraByAngleIncrement(CameraMovementSpeed, dir);
   } else if (state[SDL_SCANCODE_W]) {
-    float move_forward[3] = {0,0,CameraMovementSpeed};
-    TranslateCameraIncrement(move_forward);
+    char * dir = "FORWARD";
+    TranslateCameraByAngleIncrement(CameraMovementSpeed, dir);
   }
 
   if (state[SDL_SCANCODE_D])
   {
-    float move_right[3] = {CameraMovementSpeed,0,0};
-    TranslateCameraIncrement(move_right);
+    char * dir = "RIGHT";
+    TranslateCameraByAngleIncrement(CameraMovementSpeed, dir);
   } else if (state[SDL_SCANCODE_A]) {
-    float move_left[3] = {-CameraMovementSpeed,0,0};
-    TranslateCameraIncrement(move_left);
+    char * dir = "LEFT";
+    TranslateCameraByAngleIncrement(CameraMovementSpeed, dir);
   }
 
   if (state[SDL_SCANCODE_E])

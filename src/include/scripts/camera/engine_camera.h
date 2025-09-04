@@ -9,6 +9,8 @@ typedef struct {
 Camera* InitCamera(float Position[3], float Orientation[2]);
 
 void TranslateCameraIncrement(float movement_added[3]);
+void TranslateCameraByAngleIncrement(float velocity, char * dir);
+
 void RotateCameraIncrement(float orientation_added[2]);
 
 Camera* ObtainRecord();
