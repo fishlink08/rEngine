@@ -151,16 +151,15 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        // Always reset before polling
         float dx = 0;
         float dy = 0;
 
         while (SDL_PollEvent(&event) != 0) {
             switch (event.type) {
                 case SDL_MOUSEMOTION:
-                    dx += event.motion.xrel; // Change in X since last event
+                    dx += event.motion.xrel; 
                     dy += event.motion.yrel;
-                    break; // << important
+                    break; 
                 case SDL_QUIT:
                     quit = 1;
                     break;
@@ -173,7 +172,7 @@ int main(int argc, char* argv[]) {
         run(dx, dy);
 
         const Uint8 *state2 = SDL_GetKeyboardState(NULL);
-        if (state2[SDL_SCANCODE_ESCAPE] || state2[SDL_SCANCODE_O]) { // Exit Keybinds for Cross-Platform Dev
+        if (state2[SDL_SCANCODE_ESCAPE] || state2[SDL_SCANCODE_O]) { 
             quit = 1;
             break;
         }

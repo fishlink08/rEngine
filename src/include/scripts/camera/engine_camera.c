@@ -32,6 +32,7 @@ void TranslateCameraIncrement(float movement_added[3])
             CurrentCamera.position[1]-movement_added[1],
             CurrentCamera.position[2]+movement_added[2]
         };
+        
         memcpy(CurrentCamera.position, new_array, sizeof(CurrentCamera.position));
     } else {
         printf("Warning! Camera System has not been Initialized");
@@ -97,11 +98,19 @@ void TranslateCameraByAngleIncrement(float velocity, char *dir)
 void RotateCameraIncrement(float orientation_added[2])
 {
     if (Inited)
-    {
+    {   
+
+        if (CurrentCamera.orientation[0] + orientation_added[0] > PI/2) {
+            orientation_added[0] = PI/2 - CurrentCamera.orientation[0];
+        } else if (CurrentCamera.orientation[0] + orientation_added[0] < -PI/2) {
+            orientation_added[0] = -PI/2 - CurrentCamera.orientation[0];
+        }
+
         float new_array[2] = {
             CurrentCamera.orientation[0]+orientation_added[0],
             CurrentCamera.orientation[1]+orientation_added[1]
         };
+        
         memcpy(CurrentCamera.orientation, new_array, sizeof(CurrentCamera.orientation));
     } else {
         printf("Warning! Camera System has not been Initialized");
