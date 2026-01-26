@@ -14,6 +14,7 @@ typedef struct {
 typedef struct {
     float Vertices[8][3];
     int Faces[6][4];
+    int FaceCount;
     float ColorPallete[6][3];
     int Edges[12][2];
 

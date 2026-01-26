@@ -24,8 +24,9 @@ bool EdgeLineEnabled = false;
 
 
 typedef struct {
-    int vertices[4];  
-    float depth;      
+    int vertices[4];
+    float depth;
+    int faceIndex;
 } FaceDepth;
 
 
@@ -66,16 +67,44 @@ int CompareFaces(const void *a, const void *b) {
     return 0;
 }
 
-void ObjectSimpleFaceHandle(CubeObj* Object, MatrixPoint RotatedPoints[]) {
-    int numFaces = sizeof(Object->Faces) / sizeof(Object->Faces[0]);
+void RasterizeFace(int a, int b, int c, int d, Point2D ScreenPoints[], MatrixPoint CameraPoints[], float color[3]) {
+    SDL_SetRenderDrawColor(renderer, color[0], color[1], color[2], 255);
 
+    int indices[6] = {0,1,2, 0,2,3};
+
+    SDL_Vertex verts_one[3] = {
+         {{ScreenPoints[a].x, ScreenPoints[a].y}, {color[0], color[1],color[2],255}, {0,0}},
+         {{ScreenPoints[b].x, ScreenPoints[b].y}, {color[0], color[1],color[2],255}, {1,0}},
+         {{ScreenPoints[c].x, ScreenPoints[c].y}, {color[0], color[1],color[2],255}, {1,1}}
+    };
+
+    SDL_Vertex verts_two[3] = {
+         {{ScreenPoints[a].x, ScreenPoints[a].y}, {color[0], color[1],color[2],255}, {0,0}},
+         {{ScreenPoints[c].x, ScreenPoints[c].y}, {color[0], color[1],color[2],255}, {1,1}},
+         {{ScreenPoints[d].x, ScreenPoints[d].y}, {color[0], color[1],color[2],255}, {0,1}}
+    };
+    
+    SDL_RenderGeometry(renderer, NULL, verts_one, 3, NULL, 0);
+    SDL_RenderGeometry(renderer, NULL, verts_two, 3, NULL, 0);
+    //SDL_RenderGeometry(renderer, NULL, verts, 4, indices, 6);
+
+}
+
+
+void ObjectSimpleFaceHandle(
+    CubeObj* Object,
+    MatrixPoint CameraPoints[],
+    Point2D ScreenPoints[]
+) {
+    int numFaces = Object->FaceCount;
     FaceDepth faces[numFaces];
 
     for (int i = 0; i < numFaces; i++) {
         for (int j = 0; j < 4; j++) {
             faces[i].vertices[j] = Object->Faces[i][j];
         }
-        faces[i].depth = AverageFaceZ(RotatedPoints, Object->Faces[i]);
+        faces[i].depth = AverageFaceZ(CameraPoints, Object->Faces[i]);
+        faces[i].faceIndex = i;
     }
 
     qsort(faces, numFaces, sizeof(FaceDepth), CompareFaces);
@@ -86,7 +115,15 @@ void ObjectSimpleFaceHandle(CubeObj* Object, MatrixPoint RotatedPoints[]) {
         int c = faces[i].vertices[2];
         int d = faces[i].vertices[3];
 
-        // draw_quad(...) equivalent
+        int fi = faces[i].faceIndex;
+
+        SDL_SetRenderDrawColor(renderer,
+            Object->ColorPallete[fi][0],
+            Object->ColorPallete[fi][1],
+            Object->ColorPallete[fi][2],
+            255);
+        
+        RasterizeFace(a, b, c, d, ScreenPoints, CameraPoints, Object->ColorPallete[fi]);
     }
 }
 
@@ -105,7 +142,7 @@ void EnableObjectLines(CubeObj* Object, int Edges[12][2])
 {
     
     memcpy(Object->Edges, Edges, sizeof(Object->Edges));
-    EdgeLineEnabled = true;
+    EdgeLineEnabled = false;
 }
 
 CubeObj* CreateObject(float Vertices[8][3], int Faces[6][4], float ColorPallete[6][3], float Position[3], float Orientation[2])
@@ -117,6 +154,8 @@ CubeObj* CreateObject(float Vertices[8][3], int Faces[6][4], float ColorPallete[
     memcpy(object.ColorPallete, ColorPallete, sizeof(object.ColorPallete));
     memcpy(object.Position, Position, sizeof(object.Position));
     memcpy(object.Orientation, Orientation, sizeof(object.Orientation));
+
+    object.FaceCount = 6;
 
     ObjCount++;
     WorldObjects = realloc(WorldObjects, ObjCount * sizeof(CubeObj));
@@ -193,13 +232,14 @@ void Render(CubeObj* Object) // Render a Cube Object
             {
                 int a = Object->Edges[i][0]; int b = Object->Edges[i][1];
                 SDL_RenderDrawLine(renderer, TransformedPoints[a].x, TransformedPoints[a].y,TransformedPoints[b].x,TransformedPoints[b].y);
+                printf("hello");
             }
         }
 
 
         // Face Functions
 
-        ObjectSimpleFaceHandle(Object, RotatedPoints);
+        ObjectSimpleFaceHandle(Object, PreRotatedPoints, TransformedPoints);
     }
 
 }

@@ -5,11 +5,7 @@ Engine:
     
     * Faces & Colors (IN PROGRESS)
     * Texture Implementation
-    * Engine Filer System
 
-Filler Work:
-    * Camera Angle Limits (COMPLETE)
-    
 
 Other:
     * Create map of objects to test
