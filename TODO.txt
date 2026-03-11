@@ -1,0 +1,11 @@
+To Work On:
+    [] Add scanline rasterization & fixing z-buffer issues
+    [] Optimize render.c file
+    [] Add sphere compatibility
+    [] Simple Textures
+    [] Full 3D World/Environment
+    [] Better Object Occlusion
+    more..
+
+Bonuses:
+    [] Raytracing and/or Raymarching

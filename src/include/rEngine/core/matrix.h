@@ -1,5 +1,5 @@
-#ifndef ENGINE_MATRIX_H
-#define ENGINE_MATRIX_H
+#ifndef MATRIX_H
+#define MATRIX_H
 
 typedef struct {
     float x;
