@@ -1,4 +1,4 @@
-# Software 3D Renderer
+# rEngine | Software 3D Renderer
 
 A small **software 3D engine written in C**.
 The renderer runs entirely on the CPU and implements the basic parts of a 3D graphics pipeline without relying on GPU APIs like OpenGL. 
