@@ -1,7 +1,8 @@
 # Software 3D Renderer
 
 A small **software 3D engine written in C**.
-The renderer runs entirely on the CPU and implements the basic parts of a 3D graphics pipeline without relying on GPU APIs like OpenGL.
+The renderer runs entirely on the CPU and implements the basic parts of a 3D graphics pipeline without relying on GPU APIs like OpenGL. 
+It uses the SDL2 Library only for Window and Keybind support.
 
 The project focuses on manually implementing common rendering systems such as transformations, projection, and triangle rasterization.
 
@@ -27,6 +28,7 @@ Development is currently **paused** while other projects are being worked on.
 ## Build
 
 Instructions will depend on your platform and compiler.
+Recommended to use the makefile provided.
 
 Example using bash:
 
