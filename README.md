@@ -28,10 +28,10 @@ Development is currently **paused** while other projects are being worked on.
 
 Instructions will depend on your platform and compiler.
 
-Example using gcc:
+Example using bash:
 
 ```
-gcc main.c -o renderer
+make
 ```
 
 ## Notes
