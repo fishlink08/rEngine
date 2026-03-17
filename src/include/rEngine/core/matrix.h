@@ -16,5 +16,6 @@ MatrixPoint* TransformMatrix_X(MatrixPoint* p, float angle);
 MatrixPoint* TransformToProjection(MatrixPoint* p, float FOV);
 
 Point2D ToCartesianPoint(MatrixPoint* p);
+double DotProduct(double v[], double u[], int n);
 
 #endif

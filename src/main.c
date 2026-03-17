@@ -4,6 +4,7 @@
 
 
 float CameraMovementSpeed = 0.01f;
+int quit = 1;
 
 float vertices[8][3] = {
     {0,0,0},
@@ -38,6 +39,12 @@ void MoveCamera(float mouse_x, float mouse_y)
 {
 
     const Uint8 *state = SDL_GetKeyboardState(NULL);
+
+    if (state[SDL_SCANCODE_O])
+    {
+        quit = 0;
+    }
+
     if (state[SDL_SCANCODE_S])
     {
         char * dir = "BACKWARD";
@@ -77,7 +84,7 @@ int main(int argc, char *argv[])
 
     Object3D * myObject = CreateObject3D(vertices, 8, faces, 6, colors, 6); // Create a 3D object
 
-    float position[3] = {0,0,0};
+    float position[3] = {0,0,-3};
     float orientation[2] = {0,0};
     Camera* MyCamera = InitCamera(position, orientation);
 
@@ -104,7 +111,10 @@ int main(int argc, char *argv[])
             }
         }
         MoveCamera(dx, dy);
-
+        
+        if (quit == 0) {
+            goto QUIT;
+        }
         // event and quits
 
         EngineUpdate(engine);

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 
 int FOV = 90;
 bool EdgeLineEnabled = false;
@@ -13,25 +14,142 @@ typedef struct {
     int faceIndex;
 } FaceDepth;
 
+typedef struct {
+    int x;
+    int y;
+} sPoint;
+
+
 int DrawPoint(float x, float y, int s, Engine * eng)
 {
-
     int CommonErrorCode = 0;
-    for (int y_ = 0; y_ < s; y_++)
-    {
-        for (int x_ = 0; x_ < s; x_++)
-        {
+    for (int y_ = 0; y_ < s; y_++){
+        for (int x_ = 0; x_ < s; x_++){
             CommonErrorCode += SDL_RenderDrawPoint(eng->renderer, x+x_, y+y_);
         }
     }
 
-    if (CommonErrorCode != 0)
-    {
-        CommonErrorCode = 1;
-    } else {
-        CommonErrorCode = 0;
-    }
+    if (CommonErrorCode != 0){ CommonErrorCode = 1; } else { CommonErrorCode = 0;}
+
     return CommonErrorCode;
+}
+
+void draw_vertice_connection(float point1[2], float point2[2], Engine * eng)
+{
+    SDL_RenderDrawLine(eng->renderer, point1[0], point1[1], point2[0], point2[1]);
+}
+
+sPoint * edge_interpolate(float point1[2], float point2[2], int * out_count)
+{
+    sPoint * points_in_between = NULL;
+    int point_count = 0;
+
+    float tPoint1[2];
+    float tPoint2[2];
+
+    if (point2[1] < point1[1])
+    {
+        tPoint1[0] = point2[0];
+        tPoint1[1] = point2[1];
+        
+        tPoint2[0] = point1[0];
+        tPoint2[1] = point1[1];
+    } else {
+        tPoint1[0] = point1[0];
+        tPoint1[1] = point1[1];
+        
+        tPoint2[0] = point2[0];
+        tPoint2[1] = point2[1];
+    }
+
+    float dy = tPoint2[1] - tPoint1[1];
+    float dx = tPoint2[0] - tPoint1[0];
+
+    if (fabsf(dy) < 0.0001f) return NULL;
+
+    float slope = dx / dy;
+
+    point_count = (int)fabsf(dy);
+    if (point_count <= 0) return NULL;
+
+
+    points_in_between = realloc(points_in_between, point_count * sizeof(sPoint) );
+
+    for (int i = 0; i < point_count; i++)
+    {
+        float y = tPoint1[1] + i;
+        float x = tPoint1[0] + (slope * i);
+
+        sPoint point;
+        point.x = (int)x;
+        point.y = (int)y;
+
+        points_in_between[i] = point;
+    }
+
+    *out_count = point_count;
+
+    return points_in_between;
+}
+
+void fill_triangle(float point1[2], float point2[2], float point[2], Engine * eng)
+{
+    float pts[3][2] = {
+        {point1[0], point1[1]},
+        {point2[0], point2[1]},
+        {point[0], point[1]}
+    };
+    // pts = sorted([p0, p1, p2], key=lambda p: p[1]) 
+    //    p0, p1, p2 = pts
+    for (int i = 0; i < 2; i++) {
+        for (int j = i+1; j < 3; j++) {
+            if (pts[i][1] > pts[j][1]) {
+                float tmp[2] = {pts[i][0], pts[i][1]};
+                pts[i][0] = pts[j][0];
+                pts[i][1] = pts[j][1];
+                pts[j][0] = tmp[0];
+                pts[j][1] = tmp[1];
+            }
+        }
+    }
+    int left_count, right_top_count, right_bottom_count;
+
+    sPoint* left = edge_interpolate(pts[0], pts[2], &left_count);
+    sPoint* right_top = edge_interpolate(pts[0], pts[1], &right_top_count);
+    sPoint* right_bottom = edge_interpolate(pts[1], pts[2], &right_bottom_count);
+
+    if (left && right_top) {
+        for (int i = 0; i < right_top_count; i++)
+        {   
+            if (i < left_count) {
+                float p1[2] = {left[i].x, left[i].y};
+                float p2[2] = {right_top[i].x, right_top[i].y};
+
+                draw_vertice_connection(p1, p2, eng);
+            }
+        }
+    }
+
+    if (right_top && right_bottom) {
+        for (int i = 0; i < right_bottom_count; i++)
+        {
+            int left_idx = i + (right_top_count > 0 ? right_top_count - 1 : 0);
+            if (left_idx >= left_count) break;
+            if (left_idx < left_count) {
+                float p1[2] = {left[left_idx].x, left[left_idx].y};
+                float p2[2] = {right_bottom[i].x, right_bottom[i].y};
+
+                draw_vertice_connection(p1, p2, eng);
+            }
+        }
+    }
+
+
+
+    free(left);
+    free(right_top);
+    free(right_bottom);
+
 }
 
 float AverageFaceZ(MatrixPoint RotatedPoints[], int face[4]) {
@@ -67,14 +185,26 @@ void RasterizeFace(int a, int b, int c, int d, Point2D ScreenPoints[], MatrixPoi
          {{ScreenPoints[d].x, ScreenPoints[d].y}, {color[0], color[1],color[2],255}, {0,1}}
     };
     
-    SDL_RenderGeometry(eng->renderer, NULL, verts_one, 3, NULL, 0);
-    SDL_RenderGeometry(eng->renderer, NULL, verts_two, 3, NULL, 0);
+    //SDL_RenderGeometry(eng->renderer, NULL, verts_one, 3, NULL, 0);
+    //SDL_RenderGeometry(eng->renderer, NULL, verts_two, 3, NULL, 0);
     //SDL_RenderGeometry(renderer, NULL, verts, 4, indices, 6);
+
+    //incorporate fill_triangle here for vert 1 and two
+    float vert1p1[2] = {ScreenPoints[a].x, ScreenPoints[a].y};
+    float vert1p2[2] = {ScreenPoints[b].x, ScreenPoints[b].y};
+    float vert1p3[2] = {ScreenPoints[c].x, ScreenPoints[c].y};
+
+    float vert2p1[2] = {ScreenPoints[a].x, ScreenPoints[a].y};
+    float vert2p2[2] = {ScreenPoints[c].x, ScreenPoints[c].y};
+    float vert2p3[2] = {ScreenPoints[d].x, ScreenPoints[d].y};
+
+    fill_triangle(vert1p1, vert1p2, vert1p3, eng);
+    fill_triangle(vert2p1, vert2p2, vert2p3, eng);
 
 }
 
 
-void ObjectSimpleFaceHandle(
+void ObjectFaceHandle(
     Object3D* Object,
     MatrixPoint CameraPoints[],
     Point2D ScreenPoints[],
@@ -106,6 +236,7 @@ void ObjectSimpleFaceHandle(
             Object->face_colors[fi][1],
             Object->face_colors[fi][2],
             255);
+
         float color[3] = {
             Object->face_colors[fi][0],
             Object->face_colors[fi][1],
@@ -124,16 +255,12 @@ void ObjectSimpleFaceHandle(
             CameraPoints[c].z - CameraPoints[a].z
         };
 
-        // normal = ab × ac
         double normal[3] = {
             ab[1]*ac[2] - ab[2]*ac[1],
             ab[2]*ac[0] - ab[0]*ac[2],
             ab[0]*ac[1] - ab[1]*ac[0]
         };
 
-        
-
-        // center of face
         double center[3] = {
             (CameraPoints[a].x + CameraPoints[b].x + CameraPoints[c].x + CameraPoints[d].x) / 4.0,
             (CameraPoints[a].y + CameraPoints[b].y + CameraPoints[c].y + CameraPoints[d].y) / 4.0,
@@ -156,7 +283,6 @@ void ObjectSimpleFaceHandle(
         double dot = DotProduct(normal, view, 3);
 
         if (dot <= 0) continue;
-
         if (
             CameraPoints[a].z <= 0.01 ||
             CameraPoints[b].z <= 0.01 ||
@@ -166,7 +292,6 @@ void ObjectSimpleFaceHandle(
             continue;
         }
 
-        
         RasterizeFace(a, b, c, d, ScreenPoints, CameraPoints, color, eng);
     }
 }
@@ -206,7 +331,7 @@ void DisplayObject3D(Engine * engine, Object3D * Object)
         // CAM_REL
         Point.x -= CurrentCam->position[0];
         Point.y -= CurrentCam->position[1];
-        Point.z -= CurrentCam->position[2] - 3; // 3 is engine z offset
+        Point.z -= CurrentCam->position[2]; 
          
         TransformMatrix_X(&Point, -CurrentCam->orientation[1]); 
         TransformMatrix_Y(&Point, -CurrentCam->orientation[0]);  
@@ -215,31 +340,22 @@ void DisplayObject3D(Engine * engine, Object3D * Object)
         TransformToProjection(&Point, FOV); // Transformed , Temp FOV
         RotatedPoints[i] = Point;
 
-        if (Point.z >= 1)
-        {
-            OffScreen = true;
-        } else {
-            Point2D CPoint = ToCartesianPoint(&Point);
-            //printf("%f, %f \n", CPoint.x, CPoint.y);
-            TransformedPoints[i] = CPoint; 
-        } 
+        Point2D CPoint = ToCartesianPoint(&Point);
+        //printf("%f, %f \n", CPoint.x, CPoint.y);
+        TransformedPoints[i] = CPoint; 
+
     }
 
-    if (!OffScreen)
+
+    if (EdgeLineEnabled)
     {
-        if (EdgeLineEnabled)
+        for (int i = 0; i < sizeof(Object->edges) / sizeof(Object->edges[0]); i++)
         {
-            for (int i = 0; i < sizeof(Object->edges) / sizeof(Object->edges[0]); i++)
-            {
-                int a = Object->edges[i][0]; int b = Object->edges[i][1];
-                SDL_RenderDrawLine(engine->renderer, TransformedPoints[a].x, TransformedPoints[a].y,TransformedPoints[b].x,TransformedPoints[b].y);
-            }
+            int a = Object->edges[i][0]; int b = Object->edges[i][1];
+            SDL_RenderDrawLine(engine->renderer, TransformedPoints[a].x, TransformedPoints[a].y,TransformedPoints[b].x,TransformedPoints[b].y);
         }
-
-
-        // Face Functions
-
-        ObjectSimpleFaceHandle(Object, PreRotatedPoints, TransformedPoints, engine);
-
     }
+
+    ObjectFaceHandle(Object, PreRotatedPoints, TransformedPoints, engine);
+
 }

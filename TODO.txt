@@ -1,10 +1,11 @@
 To Work On:
-    [] Add scanline rasterization & fixing z-buffer issues
+    [DONE; version only in test files] Add scanline rasterization & fixing z-buffer issues (many scanlines bugs to sort left)
     [] Optimize render.c file
     [] Add sphere compatibility
     [] Simple Textures
     [] Full 3D World/Environment
     [] Better Object Occlusion
+    [] Minimize Memory Usage Types
     more..
 
 Bonuses:

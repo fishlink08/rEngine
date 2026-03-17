@@ -29,6 +29,14 @@ void SetupPlane(float farPlane, float nearPlane, float AspectRatio, int WS[2])
     WindowSize[1] = WS[1];
 }
 
+double DotProduct(double v[], double u[], int n)
+{
+    double result = 0.0;
+    for (int i = 0; i < n; i++)
+        result += v[i]*u[i];
+    return result;
+}
+
 MatrixPoint* TransformMatrix_X(MatrixPoint* p, float angle)
 {
    MatrixPoint TransformedPoint = {.x = 0, .y = 0, .z = 0}; 
