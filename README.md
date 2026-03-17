@@ -17,7 +17,7 @@ The project focuses on manually implementing common rendering systems such as tr
 
 ## Work In Progress
 
-* Full triangle rasterization / scanline filling
+* Full triangle rasterization / scanline filling (DONE - Currently Available in "in_progress" Files)
 * Depth buffering
 * Texture mapping
 
